@@ -1,0 +1,96 @@
+import React, { useState } from 'react';
+import { View, TextInput, Button, Text, Alert, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export default function App() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  // Função para validar se o email é institucional
+  const isInstitutionalEmail = (email) => {
+    return email.endsWith('@faculdade.com'); // Substitua pelo domínio da sua faculdade
+  };
+
+  // Função para fazer login
+  const loginUser = async () => {
+    if (email && password) {
+      if (isInstitutionalEmail(email)) {
+        try {
+          const user = await AsyncStorage.getItem('user');
+          if (user !== null) {
+            const userData = JSON.parse(user);
+            if (userData.email === email && userData.password === password) {
+              Alert.alert('Sucesso!', 'Login realizado com sucesso!');
+            } else {
+              Alert.alert('Erro', 'E-mail ou senha incorretos.');
+            }
+          } else {
+            Alert.alert('Erro', 'Nenhum usuário cadastrado encontrado.');
+          }
+        } catch (e) {
+          Alert.alert('Erro', 'Falha ao acessar os dados.');
+        }
+      } else {
+        Alert.alert('Erro', 'E-mail deve ser institucional (ex: seuemail@faculdade.com).');
+      }
+    } else {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+    }
+  };
+
+  // Função para recuperar senha (simulada)
+  const recoverPassword = async () => {
+    if (email) {
+      if (isInstitutionalEmail(email)) {
+        try {
+          const user = await AsyncStorage.getItem('user');
+          if (user !== null) {
+            const userData = JSON.parse(user);
+            if (userData.email === email) {
+              Alert.alert('Recuperação de senha', `Sua senha é: ${userData.password}`);
+            } else {
+              Alert.alert('Erro', 'E-mail não encontrado.');
+            }
+          } else {
+            Alert.alert('Erro', 'Nenhum usuário cadastrado encontrado.');
+          }
+        } catch (e) {
+          Alert.alert('Erro', 'Falha ao acessar os dados.');
+        }
+      } else {
+        Alert.alert('Erro', 'E-mail deve ser institucional (ex: seuemail@faculdade.com).');
+      }
+    } else {
+      Alert.alert('Erro', 'Por favor, insira seu e-mail institucional para recuperar a senha.');
+    }
+  };
+
+  return (
+    <View style={{ padding: 20 }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>Login</Text>
+      
+      <TextInput
+        placeholder="E-mail institucional"
+        value={email}
+        onChangeText={setEmail}
+        style={{ borderWidth: 1, padding: 10, marginBottom: 10 }}
+        keyboardType="email-address"
+      />
+      <TextInput
+        placeholder="Senha"
+        value={password}
+        secureTextEntry
+        onChangeText={setPassword}
+        style={{ borderWidth: 1, padding: 10, marginBottom: 20 }}
+      />
+      
+      <Button title="Login" onPress={loginUser} />
+
+      <TouchableOpacity onPress={recoverPassword}>
+        <Text style={{ color: 'blue', marginTop: 20, textAlign: 'center' }}>
+          Esqueci minha senha
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
