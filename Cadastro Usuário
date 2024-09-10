@@ -1,0 +1,81 @@
+import React, { useState } from 'react';
+import { View, TextInput, Button, Text, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export default function App() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [userInfo, setUserInfo] = useState(null);
+
+  // Função para validar se o email é institucional
+  const isInstitutionalEmail = (email) => {
+    return email.endsWith('@faculdade.com'); // Substitua por seu domínio
+  };
+
+  // Função para salvar dados no AsyncStorage
+  const saveUser = async () => {
+    if (email && password) {
+      if (isInstitutionalEmail(email)) {
+        try {
+          const user = { email, password };
+          await AsyncStorage.setItem('user', JSON.stringify(user));
+          Alert.alert('Sucesso!', 'Usuário cadastrado com sucesso!');
+          setEmail('');
+          setPassword('');
+        } catch (e) {
+          Alert.alert('Erro', 'Falha ao salvar usuário.');
+        }
+      } else {
+        Alert.alert('Erro', 'E-mail deve ser institucional (ex: seuemail@faculdade.com).');
+      }
+    } else {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+    }
+  };
+
+  // Função para carregar os dados do usuário
+  const loadUser = async () => {
+    try {
+      const user = await AsyncStorage.getItem('user');
+      if (user !== null) {
+        setUserInfo(JSON.parse(user));
+      }
+    } catch (e) {
+      Alert.alert('Erro', 'Falha ao carregar usuário.');
+    }
+  };
+
+  return (
+    <View style={{ padding: 20 }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>Cadastro de Usuário</Text>
+      
+      <TextInput
+        placeholder="E-mail institucional"
+        value={email}
+        onChangeText={setEmail}
+        style={{ borderWidth: 1, padding: 10, marginBottom: 10 }}
+        keyboardType="email-address"
+      />
+      <TextInput
+        placeholder="Senha"
+        value={password}
+        secureTextEntry
+        onChangeText={setPassword}
+        style={{ borderWidth: 1, padding: 10, marginBottom: 20 }}
+      />
+      
+      <Button title="Cadastrar" onPress={saveUser} />
+      
+      <View style={{ marginVertical: 20 }}>
+        <Button title="Carregar Usuário" onPress={loadUser} />
+      </View>
+      
+      {userInfo && (
+        <View style={{ marginTop: 20 }}>
+          <Text style={{ fontSize: 18 }}>Dados do Usuário:</Text>
+          <Text>E-mail: {userInfo.email}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
